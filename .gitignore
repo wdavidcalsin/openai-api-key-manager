@@ -1,0 +1,5 @@
+.vercel
+.env
+pnpm-lock.yaml
+public
+node_modules
