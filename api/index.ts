@@ -51,7 +51,7 @@ const queryDatabase = async (databaseId: string, idApiKey: string): Promise<any>
   }
 };
 
-app.get('/api/notion/openai-api-key', (req: Request, res: Response) => {
+app.get('/api/notion/get-openai-api-key', (req: Request, res: Response) => {
   void (async () => {
     if (NOTION_API_KEY === '' || NOTION_DB_ID === '') {
       throw new Error('Missing notion NOTION_API_KEY or NOTION_DB_ID');
@@ -71,6 +71,7 @@ app.get('/api/notion/openai-api-key', (req: Request, res: Response) => {
     try {
       for (const structured of rowStructured) {
         const openaiApiKeyIsValid = await testOpenAiApiKey(structured.value);
+
         if (openaiApiKeyIsValid) {
           res.status(200).send(structured);
           return;
@@ -96,12 +97,12 @@ app.get('/api/notion/update-openai-api-key', (req: Request, res: Response) => {
     await notion.pages.update({
       page_id: idPage,
       properties: {
-        value: {
+        status: {
           type: 'rich_text',
           rich_text: [
             {
               text: {
-                content: 'New value',
+                content: 'false',
               },
             },
           ],
