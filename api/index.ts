@@ -1,7 +1,6 @@
 import { Client } from '@notionhq/client';
 import express, { type Request, type Response } from 'express';
 import * as dotenv from 'dotenv';
-import { Configuration, OpenAIApi } from 'openai';
 import type { IRows } from './types';
 
 dotenv.config();
@@ -9,28 +8,6 @@ dotenv.config();
 const app = express();
 const { NOTION_API_KEY, NOTION_DB_ID } = process.env;
 const notion = new Client({ auth: NOTION_API_KEY });
-
-const testOpenAiApiKey = async (openaiApiKey: string): Promise<boolean> => {
-  const configuration = new Configuration({
-    apiKey: openaiApiKey,
-  });
-
-  const openai = new OpenAIApi(configuration);
-
-  try {
-    const res = await openai.createCompletion({
-      model: 'text-davinci-003',
-      prompt: 'Show api keys randoms:\n\n',
-    });
-
-    console.log(`API KEY ${openaiApiKey} is valid. ${res.status}`);
-
-    return true;
-  } catch (err) {
-    console.log(`API KEY ${openaiApiKey} not valid.`);
-    return false;
-  }
-};
 
 const queryDatabase = async (databaseId: string, idApiKey: string): Promise<any> => {
   try {
@@ -66,14 +43,15 @@ app.get('/api/notion/get-openai-api-key', (req: Request, res: Response) => {
     const rowStructured = rows.map(({ properties }) => ({
       id: properties?.id.title[0].text.content,
       value: properties?.value.rich_text[0].text.content,
+      status: properties?.status.rich_text[0].text.content,
     }));
 
     try {
-      for (const structured of rowStructured) {
-        const openaiApiKeyIsValid = await testOpenAiApiKey(structured.value);
+      for (const structured of rowStructured.reverse()) {
+        // const openaiApiKeyIsValid = await testOpenAiApiKey(structured.value);
 
-        if (openaiApiKeyIsValid) {
-          res.status(200).send(structured);
+        if (structured.status === 'true') {
+          res.status(200).send({ rowStructured, structured });
           return;
         }
       }

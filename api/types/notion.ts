@@ -26,6 +26,7 @@ export interface Parent {
 export interface Properties {
   id: ID;
   value: Value;
+  status: Value;
 }
 
 export interface ID {
